@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  api1:
+    build: .
+    environment:
+      - DB_PATH=/data/app.db
+      - HOSTNAME=api1
+    volumes:
+      - sqlite-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - backend
+
+  api2:
+    build: .
+    environment:
+      - DB_PATH=/data/app.db
+      - HOSTNAME=api2
+    volumes:
+      - sqlite-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - backend
+
+  api3:
+    build: .
+    environment:
+      - DB_PATH=/data/app.db
+      - HOSTNAME=api3
+    volumes:
+      - sqlite-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - backend
+
+  haproxy:
+    image: haproxy:2.8
+    ports:
+      - "80:80"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      api1:
+        condition: service_healthy
+      api2:
+        condition: service_healthy
+      api3:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+
+volumes:
+  sqlite-data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
